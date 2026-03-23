@@ -83,7 +83,89 @@ def get_listing_details(listing_id) -> dict:
     # ==============================
     # YOUR CODE STARTS HERE
     # ==============================
-    pass
+    base_dir = os.path.abspath(os.path.dirname(__file__))
+    html_path = os.path.join(base_dir, "html_files", f"listing_{listing_id}.html")
+
+    with open(html_path, "r", encoding="utf-8-sig") as f:
+        soup = BeautifulSoup(f, "html.parser")
+    
+    # Policy Number (default then extract using regex)
+    policy_number = "Pending"
+
+    policy_label = soup.find(string = re.compile("Policy number", re.I))
+    if policy_label:
+        container_text = policy_label.parent.parent.get_text(strip=True)
+        match = re.search(
+            "Policy number[:\s]*(.+?)(?:Response|Language|Superhost|\Z)",
+            container_text,
+            re.I
+        )
+        if match:
+            raw_value = match.group(1).strip()
+            raw_value = raw_value.replace("\ufeff", "").replace("\xa0", " ").strip()
+            if re.match(r"pending", raw_value, re.I):
+                policy_number = "Pending"
+            elif re.match(r"exempt", raw_value, re.I):
+                policy_number = "Exempt"
+            else:
+                policy_number = raw_value
+    
+    # Host Type (superhost)
+    host_type = "regular"
+    if soup.find(string = re.compile("is a Superhost", re.I)):
+        host_type = "superhost"
+
+    # Host Name and Room Type (search h2 tags)
+    host_name = ""
+    room_type = "Entire Room"
+
+    hosted_h2 = None
+    for h2 in soup.find_all("h2"):
+        if re.search(r"hosted by", h2.get_text(), re.I):
+            hosted_h2 = h2
+            break
+    if hosted_h2:
+        h2_text = hosted_h2.get_text(separator=" ", strip=True)
+        h2_text = h2_text.replace("\xa0", " ")
+        name_match = re.search(r"hosted by\s+(.+)", h2_text, re.I)
+        if name_match:
+            host_name = name_match.group(1).strip()
+        if "Private" in h2_text:
+            room_type = "Private Room"
+        elif "Shared" in h2_text:
+            room_type = "Shared Room"
+        else:
+            og_tag = soup.find("meta", property="og:description")
+            if og_tag:
+                og_text = og_tag.get("content", "")
+                first_sentence = og_text.split(".")[0]
+                if "Private room" in first_sentence or first_sentence.startswith("Private"):
+                    room_type = "Private Room"
+                elif "Shared room" in first_sentence or first_sentence.startswith("Shared"):
+                    room_type = "Shared Room"
+                else:
+                    room_type = "Entire Room"
+    
+    # Location Rating (default 0.0, then extract using regex)
+    location_rating = 0.0
+
+    for div in soup.find_all("div", class_="_a3qxec"):
+        text = div.get_text(strip=True)
+        if text.startswith("Location"):
+            rating_match = re.search(r"Location(\d+\.\d+)", text)
+            if rating_match:
+                location_rating = float(rating_match.group(1))
+                break
+    
+    return {
+        listing_id: {
+            "policy_number": policy_number,
+            "host_type": host_type,
+            "host_name": host_name,
+            "room_type": room_type,
+            "location_rating": location_rating
+        }
+    }
     # ==============================
     # YOUR CODE ENDS HERE
     # ==============================
