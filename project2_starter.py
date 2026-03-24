@@ -96,7 +96,7 @@ def get_listing_details(listing_id) -> dict:
     if policy_label:
         container_text = policy_label.parent.parent.get_text(strip=True)
         match = re.search(
-            "Policy number[:\s]*(.+?)(?:Response|Language|Superhost|\Z)",
+            r"Policy number[:\s]*(.+?)(?:Response|Language|Superhost|\Z)",
             container_text,
             re.I
         )
@@ -113,7 +113,7 @@ def get_listing_details(listing_id) -> dict:
     # Host Type (superhost)
     host_type = "regular"
     if soup.find(string = re.compile("is a Superhost", re.I)):
-        host_type = "superhost"
+        host_type = "Superhost"
 
     # Host Name and Room Type (search h2 tags)
     host_name = ""
@@ -386,28 +386,38 @@ class TestCases(unittest.TestCase):
     def test_create_listing_database(self):
         # TODO: Check that each tuple in detailed_data has exactly 7 elements:
         # (listing_title, listing_id, policy_number, host_type, host_name, room_type, location_rating)
-
+        for row in self.detailed_data:
+            self.assertEqual(len(row), 7)
         # TODO: Spot-check the LAST tuple is ("Guest suite in Mission District", "467507", "STR-0005349", "Superhost", "Jennifer", "Entire Room", 4.8).
-        pass
+        self.assertEqual(self.detailed_data[-1], ("Guest suite in Mission District", "467507", "STR-0005349", "Superhost", "Jennifer", "Entire Room", 4.8))
 
     def test_output_csv(self):
         out_path = os.path.join(self.base_dir, "test.csv")
 
         # TODO: Call output_csv() to write the detailed_data to a CSV file.
+        output_csv(self.detailed_data, out_path)
         # TODO: Read the CSV back in and store rows in a list.
+        rows = []
+        with open(out_path, "r", encoding="utf-8-sig") as f:
+            reader = csv.reader(f)
+            next(reader)
+            for row in reader:
+                rows.append(row)
         # TODO: Check that the first data row matches ["Guesthouse in San Francisco", "49591060", "STR-0000253", "Superhost", "Ingrid", "Entire Room", "5.0"].
-
+        self.assertEqual(rows[0], ["Guesthouse in San Francisco", "49591060", "STR-0000253", "Superhost", "Ingrid", "Entire Room", "5.0"])
         os.remove(out_path)
 
     def test_avg_location_rating_by_room_type(self):
         # TODO: Call avg_location_rating_by_room_type() and save the output.
+        averages = avg_location_rating_by_room_type(self.detailed_data)
         # TODO: Check that the average for "Private Room" is 4.9.
-        pass
+        self.assertEqual(averages["Private Room"], 4.9)
 
     def test_validate_policy_numbers(self):
         # TODO: Call validate_policy_numbers() on detailed_data and save the result into a variable invalid_listings.
+        invalid_listings = validate_policy_numbers(self.detailed_data)
         # TODO: Check that the list contains exactly "16204265" for this dataset.
-        pass
+        self.assertEqual(invalid_listings, ["16204265"])
 
 
 def main():
