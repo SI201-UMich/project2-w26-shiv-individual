@@ -329,7 +329,26 @@ def google_scholar_searcher(query):
     # ==============================
     # YOUR CODE STARTS HERE
     # ==============================
-    pass
+    url = f"https://scholar.google.com/scholar?q={query.replace(' ', '+')}"
+
+    headers = {
+        "User-Agent": (
+            "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
+            "AppleWebKit/537.36 (KHTML, like Gecko) "
+            "Chrome/110.0.0.0 Safari/537.36"
+        )
+    }
+    response = requests.get(url, headers=headers)
+    soup = BeautifulSoup(response.text, "html.parser")
+    
+    titles = []
+    for tag in soup.find_all("h3", class_="gs_rt"):
+        for span in tag.find_all("span"):
+            span.decompose()
+        title_text = tag.get_text(strip=True)
+        if title_text:
+            titles.append(title_text)
+    return titles
     # ==============================
     # YOUR CODE ENDS HERE
     # ==============================
@@ -345,18 +364,23 @@ class TestCases(unittest.TestCase):
 
     def test_load_listing_results(self):
         # TODO: Check that the number of listings extracted is 18.
+        self.assertEqual(len(self.listings), 18)
         # TODO: Check that the FIRST (title, id) tuple is  ("Loft in Mission District", "1944564").
-        pass
+        self.assertEqual(self.listings[0], ("Loft in Mission District", "1944564"))
 
     def test_get_listing_details(self):
         html_list = ["467507", "1550913", "1944564", "4614763", "6092596"]
 
         # TODO: Call get_listing_details() on each listing id above and save results in a list.
-
+        results = [get_listing_details(listing_id) for listing_id in html_list]
         # TODO: Spot-check a few known values by opening the corresponding listing_<id>.html files.
         # 1) Check that listing 467507 has the correct policy number "STR-0005349".
+        self.assertEqual(results[0]["467507"]["policy_number"], "STR-0005349")
         # 2) Check that listing 1944564 has the correct host type "Superhost" and room type "Entire Room".
+        self.assertEqual(results[2]["1944564"]["host_type"], "Superhost")
+        self.assertEqual(results[2]["1944564"]["room_type"], "Entire Room")
         # 3) Check that listing 1944564 has the correct location rating 4.9.
+        self.assertEqual(results[2]["1944564"]["location_rating"], 4.9)
         pass
 
     def test_create_listing_database(self):
