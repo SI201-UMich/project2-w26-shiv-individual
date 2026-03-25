@@ -89,27 +89,26 @@ def get_listing_details(listing_id) -> dict:
     # Policy Number (default then extract using regex)
     policy_number = "Pending"
 
-    policy_label = soup.find(string = re.compile("Policy number", re.I))
+    policy_label = soup.find(string=re.compile("Policy number"))
     if policy_label:
         container_text = policy_label.parent.parent.get_text(strip=True)
         match = re.search(
-            r"Policy number[:\s]*(.+?)(?:Response|Language|Superhost|\Z)",
-            container_text,
-            re.I
+        r"Policy number[:\s]*(.+?)(?:Response|Language|Superhost|\Z)",
+        container_text
         )
         if match:
             raw_value = match.group(1).strip()
             raw_value = raw_value.replace("\ufeff", "").replace("\xa0", " ").strip()
-            if re.match(r"pending", raw_value, re.I):
+            if raw_value.lower() == "pending":
                 policy_number = "Pending"
-            elif re.match(r"exempt", raw_value, re.I):
+            elif raw_value.lower() == "exempt":
                 policy_number = "Exempt"
             else:
                 policy_number = raw_value
     
     # Host Type (superhost)
     host_type = "regular"
-    if soup.find(string = re.compile("is a Superhost", re.I)):
+    if soup.find(string = re.compile("is a Superhost")):
         host_type = "Superhost"
 
     # Host Name and Room Type (search h2 tags)
@@ -118,13 +117,13 @@ def get_listing_details(listing_id) -> dict:
 
     hosted_h2 = None
     for h2 in soup.find_all("h2"):
-        if re.search(r"hosted by", h2.get_text(), re.I):
+        if re.search(r"hosted by", h2.get_text()):
             hosted_h2 = h2
             break
     if hosted_h2:
         h2_text = hosted_h2.get_text(separator=" ", strip=True)
         h2_text = h2_text.replace("\xa0", " ")
-        name_match = re.search(r"hosted by\s+(.+)", h2_text, re.I)
+        name_match = re.search(r"hosted by\s+(.+)", h2_text)
         if name_match:
             host_name = name_match.group(1).strip()
         if "Private" in h2_text:
@@ -378,7 +377,6 @@ class TestCases(unittest.TestCase):
         self.assertEqual(results[2]["1944564"]["room_type"], "Entire Room")
         # 3) Check that listing 1944564 has the correct location rating 4.9.
         self.assertEqual(results[2]["1944564"]["location_rating"], 4.9)
-        pass
 
     def test_create_listing_database(self):
         # TODO: Check that each tuple in detailed_data has exactly 7 elements:
