@@ -1,13 +1,10 @@
-# SI 201 HW4 (Library Checkout System)
-# Your name:
-# Your student id:
-# Your email:
-# Who or what you worked with on this homework (including generative AI like ChatGPT):
-# If you worked with generative AI also add a statement for how you used it.
-# e.g.:
-# Asked ChatGPT for hints on debugging and for suggestions on overall code structure
-#
-# Did your use of GenAI on this assignment align with your goals and guidelines in your Gen AI contract? If not, why?
+# SI 201 (Project 2)
+# Your name: Shiv Bhatia
+# Your student id: 18819760
+# Your email: shivbh@umich.edu
+# Who or what you worked with on this homework (including generative AI like ChatGPT):     I worked independently on this project, but I did minimally use GenAI to help me understand the project structure and to debug some of my code. I also looked at some BeautifulSoup documentation and online forums for help with parsing HTML and extracting information.
+# If you worked with generative AI also add a statement for how you used it:     As mentioned above, when I initially read the instructions for the project, I found them a but overwhelming and asked AI to break it down and explain the steps I needed to take as well as what each function should do. Then, I used GenAI to help me debig some of my code, for example, when I forgot the r in r"" for my regex patterns, and also for some of the BeautifulSoup stuff like parent.parent... which I was less comfortable with.
+# Did your use of GenAI on this assignment align with your goals and guidelines in your Gen AI contract? If not, why?:     I believe it was in line, even though I use dit more in the introduction stages of this project, because it helped me as a tool to cut down my setup time and maintain productivity, and my first instict was to still write and run the code myself and use GenAI as a resource when I got stuck.
 #
 # --- ARGUMENTS & EXPECTED RETURN VALUES PROVIDED --- #
 # --- SEE INSTRUCTIONS FOR FULL DETAILS ON METHOD IMPLEMENTATION --- #
@@ -146,7 +143,7 @@ def get_listing_details(listing_id) -> dict:
                 else:
                     room_type = "Entire Room"
     
-    # Location Rating (default 0.0, then extract using regex)
+    # Location Rating (default 0.0 then extract using regex)
     location_rating = 0.0
 
     for div in soup.find_all("div", class_="_a3qxec"):
